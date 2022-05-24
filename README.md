@@ -1,2 +1,2 @@
 # WordChecker
-WordChecker - A Wordle like guessing game written in C
+WordChecker - A Wordle like Guessing Game written in C
