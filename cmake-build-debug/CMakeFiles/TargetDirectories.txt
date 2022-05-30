@@ -1,3 +1,0 @@
-/home/francesco/uni/progetto_api/WordChecker/cmake-build-debug/CMakeFiles/WordChecker.dir
-/home/francesco/uni/progetto_api/WordChecker/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/francesco/uni/progetto_api/WordChecker/cmake-build-debug/CMakeFiles/rebuild_cache.dir
