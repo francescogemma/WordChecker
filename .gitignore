@@ -57,5 +57,4 @@ dkms.conf
 .vscode/*
 
 #CMake folder
-cmake-build-debug/*
-
+cmake-build-debug
