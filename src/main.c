@@ -12,7 +12,7 @@ typedef struct rb_Node{
     char word[];
 } node_t;
 
-node_t* left_rotate(node_t *root, node_t *x){
+node_t *left_rotate(node_t *root, node_t *x){
     node_t *y = x->right;
     x->right = y->left;
     if(y->left != NULL)
@@ -29,7 +29,7 @@ node_t* left_rotate(node_t *root, node_t *x){
     return root;
 }
 
-node_t* right_rotate(node_t *root, node_t *y){
+node_t *right_rotate(node_t *root, node_t *y){
     node_t *x = y->left;
     y->left = x->right;
     if(x->right != NULL)
@@ -89,7 +89,7 @@ node_t *rb_insert_fixup(node_t *root, node_t *z) {
     return root;
 }
 
-node_t* rb_insert(node_t *root, node_t *z){
+node_t *rb_insert(node_t *root, node_t *z){
     node_t *y = NULL;
     node_t *x = root;
     while(x != NULL){
