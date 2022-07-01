@@ -63,7 +63,7 @@ node_t* rb_insert_fixup(node_t* root, node_t* z) {
         if(x->is_red) {
             if(x == x->p->left) {
                 node_t* y = x->p->right;
-                if(y->is_red) {
+                if(y != NULL && y->is_red) {
                     x->is_red = false;
                     y->is_red = false;
                     x->p->is_red = true;
@@ -80,7 +80,7 @@ node_t* rb_insert_fixup(node_t* root, node_t* z) {
                 }
             } else {
                 node_t* y = x->p->left;
-                if(y->is_red) {
+                if(y != NULL && y->is_red) {
                     x->is_red = false;
                     y->is_red = false;
                     x->p->is_red = true;
