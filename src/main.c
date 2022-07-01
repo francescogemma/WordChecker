@@ -124,6 +124,7 @@ node_t* rb_insert(node_t* root, node_t* z) {
     z->right = NULL;
     z->is_red = true;
     z->is_filtered = true;
+
     root = rb_insert_fixup(root, z);
 
     return root;
