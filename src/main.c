@@ -172,6 +172,6 @@ int main() {
     int k;
     node_t* root = NULL;
     game_init(&k, &root);
-    print_tree(root);
+    //print_tree(root);
     return 0;
 }
