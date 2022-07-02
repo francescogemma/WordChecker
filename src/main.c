@@ -179,7 +179,7 @@ void print_tree(node_t* root) {
 }
 
 void read_input(char* input) {
-    int i = 0;
+    unsigned short i = 0;
     char c;
     while((c = getc_unlocked(stdin)) != '\n' && c != EOF) {
         input[i++] = c;
@@ -209,7 +209,7 @@ node_t* set_all_filtered(node_t* root) {
 
 char* give_result(char* word_to_find, char* word_input, char* result) {
     bool found;
-    int i, j;
+    unsigned short i, j;
 
     for(i = 0; i < k; i++) {
         if(word_input[i] == word_to_find[i]) {
