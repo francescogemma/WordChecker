@@ -3,8 +3,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+// maximum number of characters in a word
 #define MAX_WORD_LENGTH 100
 
+// struct for the red-black tree node
 typedef struct rb_Node {
     bool is_red;
     bool is_filtered;
@@ -34,7 +36,7 @@ void main_game(node_t** root);
 void add_words_to_tree(node_t** root);
 char* give_result(char* word_to_find, char* word_input, char* result);
 
-
+// functions definitions
 node_t* left_rotate(node_t* root, node_t* x) {
     node_t* y = x->right;
     x->right = y->left;
@@ -286,6 +288,7 @@ void main_game(node_t** root) {
     puts("ko");
 }
 
+// main function
 int main() {
     node_t* root = NULL;
     char command[MAX_WORD_LENGTH];
