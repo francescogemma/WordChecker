@@ -25,11 +25,11 @@ node_t* left_rotate(node_t* root, node_t* x);
 node_t* right_rotate(node_t* root, node_t* x);
 node_t* rb_insert_fixup(node_t* root, node_t* z);
 node_t* rb_insert(node_t* root, node_t* z);
-//void rb_destroy(node_t* root);
+void rb_destroy(node_t* root);
 void print_tree(node_t* root);
 void read_input(char* input);
 void game_init(node_t** root);
-void game_loop(node_t** root);
+void main_game(node_t** root);
 void add_words_to_tree(node_t** root);
 char* give_result(char* word_to_find, char* word_input, char* result);
 
@@ -161,13 +161,13 @@ node_t* rb_search(node_t* root, char* word) {
     }
 }
 
-/* void rb_destroy(node_t* root) {
+void rb_destroy(node_t* root) {
     if(root != NULL) {
         rb_destroy(root->left);
         rb_destroy(root->right);
         free(root);
     }
-} */
+}
 
 void print_tree(node_t* root) {
     if(root != NULL) {
@@ -240,7 +240,7 @@ void game_init(node_t** root) {
     }
 }
 
-void game_loop(node_t** root) {
+void main_game(node_t** root) {
     char word_to_find[k+1];
     read_input(word_to_find);
 
@@ -278,11 +278,20 @@ void game_loop(node_t** root) {
 
 int main() {
     node_t* root = NULL;
+    char command[MAX_WORD_LENGTH];
 
     game_init(&root);
 
-    game_loop(&root);
+    main_game(&root);
+    while(fgets(command, MAX_WORD_LENGTH, stdin) != NULL) {
+        if(!strcmp(command, "+nuova_partita\n")) {
+            main_game(&root);
+        } else if(!strcmp(command, "+inserisci_inizio\n")) {
+            add_words_to_tree(&root);
+        }
+    }
 
     // print_tree(root);
+    // rb_destroy(root);
     return 0;
 }
