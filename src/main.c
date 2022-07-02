@@ -27,10 +27,12 @@ node_t* left_rotate(node_t* root, node_t* x);
 node_t* right_rotate(node_t* root, node_t* x);
 node_t* rb_insert_fixup(node_t* root, node_t* z);
 node_t* rb_insert(node_t* root, node_t* z);
+node_t* rb_search(node_t* root, char* word);
 node_t* set_all_filtered(node_t* root);
 void rb_destroy(node_t* root);
 void print_tree(node_t* root);
 void read_input(char* input);
+unsigned count_filtered(node_t* root);
 void game_init(node_t** root);
 void main_game(node_t** root);
 void add_words_to_tree(node_t** root);
@@ -239,6 +241,17 @@ char* give_result(char* word_to_find, char* word_input, char* result) {
     return result;
 }
 
+unsigned count_filtered(node_t* root) {
+    if(root == NULL) {
+        return 0;
+    }
+    if(root->is_filtered) {
+        return 1 + count_filtered(root->left) + count_filtered(root->right);
+    } else {
+        return count_filtered(root->left) + count_filtered(root->right);
+    }
+}
+
 void game_init(node_t** root) {
     char input[MAX_WORD_LENGTH];
     read_input(input);
@@ -253,6 +266,7 @@ void game_init(node_t** root) {
 }
 
 void main_game(node_t** root) {
+    unsigned number_of_filtered;
     char word_to_find[k+1];
     read_input(word_to_find);
 
@@ -279,6 +293,10 @@ void main_game(node_t** root) {
                 strcpy(input_copy, input);
                 strcpy(result, give_result(word_to_find_copy, input_copy, result));
                 puts(result);
+
+                number_of_filtered = count_filtered(*root);
+                fprintf(stdout, "%d\n", number_of_filtered);
+
                 attempts--;
             } else {
                 puts("not_exists");
