@@ -189,7 +189,7 @@ void read_input(char* input) {
 void add_words_to_tree(node_t** root) {
     char word[MAX_WORD_LENGTH];
     read_input(word);
-    while(strcmp(word, "+inserisci_fine")) {
+    while(strcmp(word, "+inserisci_fine") != 0) {
         node_t* z = malloc(sizeof(node_t) + k + 1);
         strcpy(z->word, word);
         *root = rb_insert(*root, z);
