@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_LENGTH 100
+#define MAX_WORD_LENGTH 100
 
 typedef struct rb_Node {
     bool is_red;
@@ -13,6 +13,25 @@ typedef struct rb_Node {
     struct rb_Node* p;
     char word[];
 } node_t;
+
+
+// global variables
+unsigned short k;
+unsigned short attempts;
+
+
+// functions declarations
+node_t* left_rotate(node_t* root, node_t* x);
+node_t* right_rotate(node_t* root, node_t* x);
+node_t* rb_insert_fixup(node_t* root, node_t* z);
+node_t* rb_insert(node_t* root, node_t* z);
+//void rb_destroy(node_t* root);
+void print_tree(node_t* root);
+void read_input(char* input);
+void game_init(node_t** root);
+void game_loop(node_t** root);
+void add_words_to_tree(node_t** root);
+char* give_result(char* word_to_find, char* word_input, char* result);
 
 
 node_t* left_rotate(node_t* root, node_t* x) {
@@ -55,6 +74,7 @@ node_t* right_rotate(node_t* root, node_t* x) {
     return root;
 }
 
+// TODO: change rb_insert_fixup from recursive to iterative
 node_t* rb_insert_fixup(node_t* root, node_t* z) {
     if(z == root) {
         root->is_red = false;
@@ -130,6 +150,17 @@ node_t* rb_insert(node_t* root, node_t* z) {
     return root;
 }
 
+node_t* rb_search(node_t* root, char* word) {
+    if(root == NULL || !strcmp(word, root->word)) {
+        return root;
+    }
+    if(strcmp(word, root->word) < 0) {
+        return rb_search(root->left, word);
+    } else {
+        return rb_search(root->right, word);
+    }
+}
+
 /* void rb_destroy(node_t* root) {
     if(root != NULL) {
         rb_destroy(root->left);
@@ -155,23 +186,103 @@ void read_input(char* input) {
     input[i] = '\0';
 }
 
-void game_init(int* k, node_t** root) {
-    char input[MAX_LENGTH];
+void add_words_to_tree(node_t** root) {
+    char word[MAX_WORD_LENGTH];
+    read_input(word);
+    while(strcmp(word, "+inserisci_fine")) {
+        node_t* z = malloc(sizeof(node_t) + k + 1);
+        strcpy(z->word, word);
+        *root = rb_insert(*root, z);
+        read_input(word);
+    }
+}
+
+char* give_result(char* word_to_find, char* word_input, char* result) {
+    bool found;
+    int i, j;
+
+    for(i = 0; i < k; i++) {
+        if(word_input[i] == word_to_find[i]) {
+            word_to_find[i] = word_input[i] = '*';
+            result[i] = '+';
+        }
+    }
+
+    for(i = 0, found = false; i < k; i++, found = false) {
+        if(word_input[i] != '*') {
+            for(j = 0; j < k && !found; j++) {
+                if(word_input[i] == word_to_find[j]) {
+                    found = true;
+                    result[i] = '|';
+                    word_to_find[j] = '*';
+                }
+            }
+            if(!found) {
+                result[i] = '/';
+            }
+        }
+    }
+    result[k] = '\0';
+
+    return result;
+}
+
+void game_init(node_t** root) {
+    char input[MAX_WORD_LENGTH];
     read_input(input);
-    *k = atoi(input);
+    k = (unsigned short)atoi(input);
     read_input(input);
     while(strcmp(input, "+nuova_partita") != 0) {
-        node_t *z = malloc(sizeof(node_t) + *(k) + 1);
+        node_t* z = malloc(sizeof(node_t) + k + 1);
         strcpy(z->word, input);
         *root = rb_insert(*root, z);
         read_input(input);
     }
 }
 
+void game_loop(node_t** root) {
+    char word_to_find[k+1];
+    read_input(word_to_find);
+
+    char input[MAX_WORD_LENGTH];
+    read_input(input);
+    attempts = (unsigned short)atoi(input);
+
+    while(attempts > 0) {
+        read_input(input);
+        if(!strcmp(input, word_to_find)) {
+            puts("ok");
+            return;
+        } else if(!strcmp(input, "+inserisci_inizio")) {
+            add_words_to_tree(root);
+        } else if(!strcmp(input, "+stampa_filtrate")) {
+            // TODO: make the stampa_filtrate
+        } else {
+            // TODO: give number of words that may be correct
+            if(rb_search(*root, input) != NULL) {
+                char result[k+1];
+                char word_to_find_copy[k+1];
+                char input_copy[k+1];
+                strcpy(word_to_find_copy, word_to_find);
+                strcpy(input_copy, input);
+                strcpy(result, give_result(word_to_find_copy, input_copy, result));
+                puts(result);
+                attempts--;
+            } else {
+                puts("not_exists");
+            }
+        }
+    }
+    puts("ko");
+}
+
 int main() {
-    int k;
     node_t* root = NULL;
-    game_init(&k, &root);
-    //print_tree(root);
+
+    game_init(&root);
+
+    game_loop(&root);
+
+    // print_tree(root);
     return 0;
 }
