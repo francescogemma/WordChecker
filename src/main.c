@@ -53,7 +53,7 @@ s_node_t* simple_list_insert(s_node_t* head, unsigned short position);
 s_node_t* simple_list_search(s_node_t* head, unsigned short position);
 // void destroy_list(char_node_t* head);
 void destroy_simple_list(s_node_t* head);
-short simple_list_length(s_node_t* head);
+// short simple_list_length(s_node_t* head);
 char_node_t* update_constraints(char_node_t* head, char* word_input, char* result);
 bool filter(char_node_t* head, char* word);
 void game_init(rb_node_t** root);
@@ -310,7 +310,7 @@ s_node_t* simple_list_search(s_node_t* head, unsigned short position) {
     return x;
 }
 
-short simple_list_length(s_node_t* head) {
+/* short simple_list_length(s_node_t* head) {
     short i = 0;
     s_node_t* x = head;
     while(x != NULL) {
@@ -318,7 +318,7 @@ short simple_list_length(s_node_t* head) {
         x = x->next;
     }
     return i;
-}
+} */
 
 /* void destroy_list(char_node_t* head) {
     char_node_t* x = head;
