@@ -43,8 +43,8 @@ rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z);
 rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z);
 rb_node_t* rb_search(rb_node_t* root, char* word);
 rb_node_t* set_all_filtered(rb_node_t* root);
-void rb_destroy(rb_node_t* root);
-void print_tree(rb_node_t* root);
+// void rb_destroy(rb_node_t* root);
+// void print_tree(rb_node_t* root);
 void read_input(char* input);
 unsigned count_filtered(rb_node_t* root);
 char_node_t* list_search(char_node_t* head, char c);
@@ -102,50 +102,43 @@ rb_node_t* right_rotate(rb_node_t* root, rb_node_t* x) {
     return root;
 }
 
-// TODO: change rb_insert_fixup from recursive to iterative
 rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z) {
-    if(z == root) {
-        root->is_red = false;
-    } else {
-        rb_node_t* x = z->p;
-        if(x->is_red) {
-            if(x == x->p->left) {
-                rb_node_t* y = x->p->right;
-                if(y != NULL && y->is_red) {
-                    x->is_red = false;
-                    y->is_red = false;
-                    x->p->is_red = true;
-                    root = rb_insert_fixup(root, x->p);
-                } else {
-                    if(z == x->right) {
-                        z = x;
-                        root = left_rotate(root, z);
-                        x = z->p;
-                    }
-                    x->is_red = false;
-                    x->p->is_red = true;
-                    root = right_rotate(root, x->p);
-                }
+    while(z->p != NULL && z->p->is_red == true) {
+        if(z->p == z->p->p->left) {
+            rb_node_t* y = z->p->p->right;
+            if(y != NULL && y->is_red == true) {
+                z->p->is_red = false;
+                y->is_red = false;
+                z->p->p->is_red = true;
+                z = z->p->p;
             } else {
-                rb_node_t* y = x->p->left;
-                if(y != NULL && y->is_red) {
-                    x->is_red = false;
-                    y->is_red = false;
-                    x->p->is_red = true;
-                    root = rb_insert_fixup(root, x->p);
-                } else {
-                    if(z == x->left) {
-                        z = x;
-                        root = right_rotate(root, z);
-                        x = z->p;
-                    }
-                    x->is_red = false;
-                    x->p->is_red = true;
-                    root = left_rotate(root, x->p);
+                if(z == z->p->right) {
+                    z = z->p;
+                    root = left_rotate(root, z);
                 }
+                z->p->is_red = false;
+                z->p->p->is_red = true;
+                root = right_rotate(root, z->p->p);
+            }
+        } else {
+            rb_node_t* y = z->p->p->left;
+            if(y != NULL && y->is_red == true) {
+                z->p->is_red = false;
+                y->is_red = false;
+                z->p->p->is_red = true;
+                z = z->p->p;
+            } else {
+                if(z == z->p->left) {
+                    z = z->p;
+                    root = right_rotate(root, z);
+                }
+                z->p->is_red = false;
+                z->p->p->is_red = true;
+                root = left_rotate(root, z->p->p);
             }
         }
     }
+    root->is_red = false;
     return root;
 }
 
@@ -189,21 +182,21 @@ rb_node_t* rb_search(rb_node_t* root, char* word) {
     }
 }
 
-void rb_destroy(rb_node_t* root) {
+/* void rb_destroy(rb_node_t* root) {
     if(root != NULL) {
         rb_destroy(root->left);
         rb_destroy(root->right);
         free(root);
     }
-}
+} */
 
-void print_tree(rb_node_t* root) {
+/* void print_tree(rb_node_t* root) {
     if(root != NULL) {
         print_tree(root->left);
         printf("%s\n", root->word);
         print_tree(root->right);
     }
-}
+} */
 
 void read_input(char* input) {
     unsigned short i = 0;
@@ -547,7 +540,6 @@ int main() {
         }
     }
 
-    // print_tree(root);
-    rb_destroy(root);
+    // rb_destroy(root);
     return 0;
 }
