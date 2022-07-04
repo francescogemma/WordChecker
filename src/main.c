@@ -16,11 +16,13 @@ typedef struct rb_Node {
     char word[];
 } rb_node_t;
 
+// struct for the lists of positions where a character must appear or cannot appear
 typedef struct simple_Node {
     unsigned short pos;
     struct simple_Node* next;
 } s_node_t;
 
+// struct for list of character constraints
 typedef struct char_Node {
     char c;
     short appears_exactly;
@@ -33,10 +35,11 @@ typedef struct char_Node {
 
 // global variables
 unsigned short k;
-unsigned short attempts;
 
 
 // functions declarations
+char* fastcpy(char* dest, const char* string_to_copy);
+short fastcmp(const char* s1, const char* s2);
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x);
 rb_node_t* right_rotate(rb_node_t* root, rb_node_t* x);
 rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z);
@@ -54,14 +57,41 @@ s_node_t* simple_list_search(s_node_t* head, unsigned short position);
 // void destroy_list(char_node_t* head);
 void destroy_simple_list(s_node_t* head);
 // short simple_list_length(s_node_t* head);
-char_node_t* update_constraints(char_node_t* head, char* word_input, char* result);
-bool filter(char_node_t* head, char* word);
+char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result);
+bool filter(char_node_t* head, const char* word);
 void game_init(rb_node_t** root);
 void main_game(rb_node_t** root);
 void add_words_to_tree(rb_node_t** root);
 char* give_result(char* word_to_find, char* word_input, char* result);
 
+
 // functions definitions
+char* fastcpy(char* dest, const char* string_to_copy) {
+    unsigned short i = 0;
+    while(string_to_copy[i] != '\0') {
+        dest[i] = string_to_copy[i];
+        i++;
+    }
+    dest[i] = '\0';
+
+    return dest;
+}
+
+short fastcmp(const char* s1, const char* s2) {
+    unsigned short i = 0;
+    while(s1[i] == s2[i]) {
+        if (s1[i] == '\0') {
+            return 0;
+        }
+        i++;
+    }
+    if(s1[i] < s2[i]) {
+        return -1;
+    } else {
+        return 1;
+    }
+}
+
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x) {
     rb_node_t* y = x->right;
     x->right = y->left;
@@ -147,7 +177,7 @@ rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z) {
     rb_node_t* x = root;
     while(x != NULL) {
         y = x;
-        if(strcmp(z->word, x->word) < 0) {
+        if(fastcmp(z->word, x->word) < 0) {
             x = x->left;
         } else {
             x = x->right;
@@ -156,7 +186,7 @@ rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z) {
     z->p = y;
     if(y == NULL) {
         root = z;
-    } else if(strcmp(z->word, y->word) < 0) {
+    } else if(fastcmp(z->word, y->word) < 0) {
         y->left = z;
     } else {
         y->right = z;
@@ -172,10 +202,10 @@ rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z) {
 }
 
 rb_node_t* rb_search(rb_node_t* root, char* word) {
-    if(root == NULL || !strcmp(word, root->word)) {
+    if(root == NULL || !fastcmp(word, root->word)) {
         return root;
     }
-    if(strcmp(word, root->word) < 0) {
+    if(fastcmp(word, root->word) < 0) {
         return rb_search(root->left, word);
     } else {
         return rb_search(root->right, word);
@@ -210,9 +240,9 @@ void read_input(char* input) {
 void add_words_to_tree(rb_node_t** root) {
     char word[MAX_WORD_LENGTH];
     read_input(word);
-    while(strcmp(word, "+inserisci_fine") != 0) {
+    while(word[0] != '+') { // finchè non c'è un +inserisci_fine
         rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-        strcpy(z->word, word);
+        fastcpy(z->word, word);
         *root = rb_insert(*root, z);
         read_input(word);
     }
@@ -331,7 +361,7 @@ void destroy_simple_list(s_node_t* head) {
     }
 }
 
-char_node_t* update_constraints(char_node_t* head, char* word_input, char* result) {
+char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result) {
     for(int i = 0; i < k; i++) {
         if(result[i] == '+') {
             char_node_t* x = list_search(head, word_input[i]);
@@ -389,7 +419,7 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, char* resul
     return head;
 }
 
-bool filter(char_node_t* head, char* word) {
+bool filter(char_node_t* head, const char* word) {
     short counter;
     //short appears_plus_length = 0;
     char_node_t* x = head;
@@ -453,15 +483,16 @@ void game_init(rb_node_t** root) {
     read_input(input);
     k = (unsigned short)atoi(input);
     read_input(input);
-    while(strcmp(input, "+nuova_partita") != 0) {
+    while(input[0] != '+') {
         rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-        strcpy(z->word, input);
+        fastcpy(z->word, input);
         *root = rb_insert(*root, z);
         read_input(input);
     }
 }
 
 void main_game(rb_node_t** root) {
+    unsigned attempts;
     char_node_t* head = NULL;
     char_node_t* curr;
 
@@ -470,46 +501,48 @@ void main_game(rb_node_t** root) {
 
     char input[MAX_WORD_LENGTH];
     read_input(input);
-    attempts = (unsigned short)atoi(input);
+    attempts = (unsigned)atoi(input);
 
     while(attempts > 0) {
         read_input(input);
-        if(!strcmp(input, word_to_find)) {
-            puts("ok");
-
-            while(head != NULL) {
-                curr = head;
-                head = head->next;
-                destroy_simple_list(curr->appears_in);
-                destroy_simple_list(curr->not_appears_in);
-                free(curr);
-            }
-
-            return;
-        } else if(!strcmp(input, "+inserisci_inizio")) {
-            add_words_to_tree(root);
-            *root = filter_tree(*root, head);
-        } else if(!strcmp(input, "+stampa_filtrate")) {
-            print_filtered(*root);
-        } else {
-            if(rb_search(*root, input) != NULL) {
-                char result[k+1];
-                char word_to_find_copy[k+1];
-                char input_copy[k+1];
-                strcpy(word_to_find_copy, word_to_find);
-                strcpy(input_copy, input);
-                strcpy(result, give_result(word_to_find_copy, input_copy, result));
-                puts(result);
-
-                head = update_constraints(head, input, result);
+         if(input[0] == '+') {    // if there is a command in input
+            if(input[1] == 'i') {   // in the command is +inserisci_inizio
+                add_words_to_tree(root);
                 *root = filter_tree(*root, head);
-
-                fprintf(stdout, "%d\n", count_filtered(*root));
-
-                attempts--;
-            } else {
-                puts("not_exists");
+            } else {    // if the command is +stampa_filtrate
+                print_filtered(*root);
             }
+        } else {
+             if(!fastcmp(input, word_to_find)) {
+                 puts("ok");
+
+                 while(head != NULL) {
+                     curr = head;
+                     head = head->next;
+                     destroy_simple_list(curr->appears_in);
+                     destroy_simple_list(curr->not_appears_in);
+                     free(curr);
+                 }
+
+                 return;
+             } else if(rb_search(*root, input) != NULL) {
+                 char result[k+1];
+                 char word_to_find_copy[k+1];
+                 char input_copy[k+1];
+                 fastcpy(word_to_find_copy, word_to_find);
+                 fastcpy(input_copy, input);
+                 fastcpy(result, give_result(word_to_find_copy, input_copy, result));
+                 puts(result);
+
+                 head = update_constraints(head, input, result);
+                 *root = filter_tree(*root, head);
+
+                 fprintf(stdout, "%d\n", count_filtered(*root));
+
+                 --attempts;
+             } else {
+                 puts("not_exists");
+             }
         }
     }
     puts("ko");
@@ -532,11 +565,13 @@ int main() {
 
     main_game(&root);
     while(fgets(command, MAX_WORD_LENGTH, stdin) != NULL) {
-        if(!strcmp(command, "+nuova_partita\n")) {
-            root = set_all_filtered(root);
-            main_game(&root);
-        } else if(!strcmp(command, "+inserisci_inizio\n")) {
-            add_words_to_tree(&root);
+        if(command[0] == '+') { // if there is a command in input
+            if(command[1] == 'n') { // if the command is +nuova_partita
+                root = set_all_filtered(root);
+                main_game(&root);
+            } else if(command[1] == 'i') {  // if the command is +inserisci_inizio
+                add_words_to_tree(&root);
+            }
         }
     }
 
