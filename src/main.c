@@ -6,10 +6,16 @@
 // maximum number of characters in a word
 #define MAX_WORD_LENGTH 100
 
-// struct for the red-black tree node
+
+// struct for linked list of words in the dictionary
+typedef struct word_Node {
+    struct word_Node *next;
+    char word[];
+} word_node_t;
+
+// struct for the red-black tree node for filtered words
 typedef struct rb_Node {
     bool is_red;
-    bool is_filtered;
     struct rb_Node* left;
     struct rb_Node* right;
     struct rb_Node* p;
@@ -40,28 +46,34 @@ unsigned short k;
 // functions declarations
 char* fastcpy(char* dest, const char* string_to_copy);
 short fastcmp(const char* s1, const char* s2);
+word_node_t* word_list_insert(word_node_t* head, char* word);
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x);
 rb_node_t* right_rotate(rb_node_t* root, rb_node_t* x);
+//rb_node_t* tree_minimum(rb_node_t* root, rb_node_t* x);
+//rb_node_t* tree_successor(rb_node_t* root, rb_node_t* x);
 rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z);
 rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z);
+//rb_node_t* rb_delete_fixup(rb_node_t* root, rb_node_t* x);
+//rb_node_t* rb_delete(rb_node_t* root, rb_node_t* z);
 rb_node_t* rb_search(rb_node_t* root, char* word);
-rb_node_t* set_all_filtered(rb_node_t* root);
-// void rb_destroy(rb_node_t* root);
-// void print_tree(rb_node_t* root);
+void rb_destroy(rb_node_t* root);
 void read_input(char* input);
 unsigned count_filtered(rb_node_t* root);
 char_node_t* list_search(char_node_t* head, char c);
 char_node_t* list_insert(char_node_t* head, char c);
 s_node_t* simple_list_insert(s_node_t* head, unsigned short position);
 s_node_t* simple_list_search(s_node_t* head, unsigned short position);
-// void destroy_list(char_node_t* head);
 void destroy_simple_list(s_node_t* head);
-// short simple_list_length(s_node_t* head);
 char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result);
 bool filter(char_node_t* head, const char* word);
-void game_init(rb_node_t** root);
-void main_game(rb_node_t** root);
-void add_words_to_tree(rb_node_t** root);
+void word_list_destroy(word_node_t* head);
+void add_words_to_not_remove(rb_node_t* root, char_node_t* head, word_node_t ** words_to_not_remove);
+rb_node_t* filter_tree(rb_node_t* root, char_node_t* head);
+void print_filtered(rb_node_t* root);
+void game_init(word_node_t** head);
+void main_game(word_node_t** word_head);
+void add_words_to_dictionary_in_game(char_node_t* head, rb_node_t** root, word_node_t** word_list);
+void add_words_to_dictionary_not_in_game(word_node_t** word_list);
 char* give_result(char* word_to_find, char* word_input, char* result);
 
 
@@ -90,6 +102,13 @@ short fastcmp(const char* s1, const char* s2) {
     } else {
         return 1;
     }
+}
+
+word_node_t* word_list_insert(word_node_t* head, char* word) {
+    word_node_t* z = malloc(sizeof(word_node_t) + k + 1);
+    fastcpy(z->word, word);
+    z->next = head;
+    return z;
 }
 
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x) {
@@ -194,7 +213,6 @@ rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z) {
     z->left = NULL;
     z->right = NULL;
     z->is_red = true;
-    z->is_filtered = true;
 
     root = rb_insert_fixup(root, z);
 
@@ -212,21 +230,118 @@ rb_node_t* rb_search(rb_node_t* root, char* word) {
     }
 }
 
-/* void rb_destroy(rb_node_t* root) {
+/* rb_node_t* tree_minimum(rb_node_t* root, rb_node_t* x) {
+    while(x->left != NULL) {
+        x = x->left;
+    }
+    return x;
+}
+
+rb_node_t* tree_successor(rb_node_t* root, rb_node_t* x) {
+    if(x->right != NULL) {
+        return tree_minimum(root, x->right);
+    }
+    rb_node_t* y = x->p;
+    while(y != NULL && x == y->right) {
+        x = y;
+        y = y->p;
+    }
+    return y;
+}
+
+rb_node_t* rb_delete_fixup(rb_node_t* root, rb_node_t* x) {
+    while(x != root && x->is_red == false) {
+        if(x->p != NULL && x == x->p->left) {
+            rb_node_t *w = x->p->right;
+            if (w != NULL && w->is_red == true) {
+                w->is_red = false;
+                x->p->is_red = true;
+                root = left_rotate(root, x->p);
+                w = x->p->right;
+            }
+            if(w->right != NULL && w->left != NULL) {
+                if (w->left->is_red == false && w->right->is_red == false) {
+                    w->is_red = true;
+                    x = x->p;
+                } else {
+                    if (w->right->is_red == false) {
+                        w->left->is_red = false;
+                        w->is_red = true;
+                        root = right_rotate(root, w);
+                        w = x->p->right;
+                    }
+                    w->is_red = x->p->is_red;
+                    x->p->is_red = false;
+                    w->right->is_red = false;
+                    root = left_rotate(root, x->p);
+                    x = root;
+                }
+            }
+        } else {
+            rb_node_t *w = x->p->left;
+            if (w != NULL && w->is_red == true) {
+                w->is_red = false;
+                x->p->is_red = true;
+                root = right_rotate(root, x->p);
+                w = x->p->left;
+            }
+            if(w->right != NULL && w->left != NULL) {
+                if (w->right->is_red == false && w->left->is_red == false) {
+                    w->is_red = true;
+                    x = x->p;
+                } else {
+                    if (w->left->is_red == false) {
+                        w->right->is_red = false;
+                        w->is_red = true;
+                        root = left_rotate(root, w);
+                        w = x->p->left;
+                    }
+                    w->is_red = x->p->is_red;
+                    x->p->is_red = false;
+                    w->left->is_red = false;
+                    root = right_rotate(root, x->p);
+                    x = root;
+                }
+            }
+        }
+    }
+    x->is_red = false;
+    return root;
+}
+
+rb_node_t* rb_delete(rb_node_t* root, rb_node_t* z) {
+    rb_node_t* y;
+    rb_node_t* x;
+    if(z->left == NULL || z->right == NULL) {
+        y = z;
+    } else y = tree_successor(root, z);
+    if(y->left != NULL) {
+        x = y->left;
+    } else x = y->right;
+    if(x != NULL) {
+        x->p = y->p;
+    }
+    if(y->p == NULL) {
+        root = x;
+    } else if(y == y->p->left) {
+        y->p->left = x;
+    } else y->p->right = x;
+    if(y != z) {
+        fastcpy(z->word, y->word);
+    }
+    if(y->is_red == false) {
+        root = rb_delete_fixup(root, x);
+    }
+    return y;
+}*/
+
+void rb_destroy(rb_node_t* root) {
     if(root != NULL) {
         rb_destroy(root->left);
         rb_destroy(root->right);
         free(root);
     }
-} */
-
-/* void print_tree(rb_node_t* root) {
-    if(root != NULL) {
-        print_tree(root->left);
-        printf("%s\n", root->word);
-        print_tree(root->right);
-    }
-} */
+}
 
 void read_input(char* input) {
     unsigned short i = 0;
@@ -237,24 +352,27 @@ void read_input(char* input) {
     input[i] = '\0';
 }
 
-void add_words_to_tree(rb_node_t** root) {
+void add_words_to_dictionary_in_game(char_node_t* head, rb_node_t** root, word_node_t** word_list) {
     char word[MAX_WORD_LENGTH];
     read_input(word);
     while(word[0] != '+') { // finchè non c'è un +inserisci_fine
-        rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-        fastcpy(z->word, word);
-        *root = rb_insert(*root, z);
+        *word_list = word_list_insert(*word_list, word);
+        if(filter(head, word) == true) {
+            rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
+            fastcpy(z->word, word);
+            *root = rb_insert(*root, z);
+        }
         read_input(word);
     }
 }
 
-rb_node_t* set_all_filtered(rb_node_t* root) {
-    if(root != NULL) {
-        root->is_filtered = true;
-        set_all_filtered(root->left);
-        set_all_filtered(root->right);
+void add_words_to_dictionary_not_in_game(word_node_t** word_list) {
+    char word[MAX_WORD_LENGTH];
+    read_input(word);
+    while(word[0] != '+') { // finchè non c'è un +inserisci_fine
+        *word_list = word_list_insert(*word_list, word);
+        read_input(word);
     }
-    return root;
 }
 
 char* give_result(char* word_to_find, char* word_input, char* result) {
@@ -291,14 +409,9 @@ unsigned count_filtered(rb_node_t* root) {
     if(root == NULL) {
         return 0;
     }
-    if(root->is_filtered) {
-        return 1 + count_filtered(root->left) + count_filtered(root->right);
-    } else {
-        return count_filtered(root->left) + count_filtered(root->right);
-    }
+    return count_filtered(root->left) + count_filtered(root->right) + 1;
 }
 
-// list search function
 char_node_t* list_search(char_node_t* head, char c) {
     char_node_t* x = head;
     while(x != NULL && x->c != c) {
@@ -332,25 +445,6 @@ s_node_t* simple_list_search(s_node_t* head, unsigned short position) {
     }
     return x;
 }
-
-/* short simple_list_length(s_node_t* head) {
-    short i = 0;
-    s_node_t* x = head;
-    while(x != NULL) {
-        i++;
-        x = x->next;
-    }
-    return i;
-} */
-
-/* void destroy_list(char_node_t* head) {
-    char_node_t* x = head;
-    while(x != NULL) {
-        char_node_t* y = x;
-        x = x->next;
-        free(y);
-    }
-} */
 
 void destroy_simple_list(s_node_t* head) {
     s_node_t* x = head;
@@ -457,42 +551,90 @@ bool filter(char_node_t* head, const char* word) {
     return true;
 }
 
-rb_node_t* filter_tree(rb_node_t* root, char_node_t* head) {
-    if(root != NULL) {
-        filter_tree(root->left, head);
-        if(root->is_filtered == true && filter(head, root->word) == false) {
-            root->is_filtered = false;
-        }
-        filter_tree(root->right, head);
+void word_list_destroy(word_node_t* head) {
+    word_node_t* x = head;
+    while(x != NULL) {
+        word_node_t* y = x;
+        x = x->next;
+        free(y);
     }
-    return root;
+}
+
+void add_words_to_not_remove(rb_node_t* root, char_node_t* head, word_node_t ** words_to_not_remove) {
+    if(root != NULL) {
+        add_words_to_not_remove(root->left, head, words_to_not_remove);
+        if(filter(head, root->word) == true) {
+            *words_to_not_remove = word_list_insert(*words_to_not_remove, root->word);
+        }
+        add_words_to_not_remove(root->right, head, words_to_not_remove);
+    }
+}
+
+rb_node_t* filter_tree(rb_node_t* root, char_node_t* head) {
+    word_node_t *words_to_not_remove = NULL;
+    rb_node_t* new_root = NULL;
+    add_words_to_not_remove(root, head, &words_to_not_remove);
+    /*word_node_t* m = words_to_not_remove;
+    while(m != NULL) {
+        puts(m->word);
+        m = m->next;
+    }*/
+    word_node_t* x = words_to_not_remove;
+    while(x != NULL) {
+        rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
+        fastcpy(z->word, x->word);
+        new_root = rb_insert(new_root, z);
+        x = x->next;
+    }
+    word_list_destroy(words_to_not_remove);
+    rb_destroy(root);
+    return new_root;
 }
 
 void print_filtered(rb_node_t* root) {
     if(root != NULL) {
         print_filtered(root->left);
-        if(root->is_filtered == true) {
-            puts(root->word);
-        }
+        puts(root->word);
         print_filtered(root->right);
     }
 }
 
-void game_init(rb_node_t** root) {
+rb_node_t* initialize_tree(rb_node_t* root, word_node_t* word_list) {
+    word_node_t* x = word_list;
+    while(x != NULL) {
+        rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
+        fastcpy(z->word, x->word);
+        root = rb_insert(root, z);
+        x = x->next;
+    }
+    return root;
+}
+
+word_node_t* word_search(word_node_t* head, const char* word) {
+    word_node_t* x = head;
+    while(x != NULL) {
+        if(fastcmp(x->word, word) == 0) {
+            return x;
+        }
+        x = x->next;
+    }
+    return NULL;
+}
+
+void game_init(word_node_t** head) {
     char input[MAX_WORD_LENGTH];
     read_input(input);
     k = (unsigned short)atoi(input);
     read_input(input);
     while(input[0] != '+') {
-        rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-        fastcpy(z->word, input);
-        *root = rb_insert(*root, z);
+        *head = word_list_insert(*head, input);
         read_input(input);
     }
 }
 
-void main_game(rb_node_t** root) {
+void main_game(word_node_t** word_head) {
     unsigned attempts;
+    rb_node_t* root = NULL;
     char_node_t* head = NULL;
     char_node_t* curr;
 
@@ -503,14 +645,15 @@ void main_game(rb_node_t** root) {
     read_input(input);
     attempts = (unsigned)atoi(input);
 
+    root = initialize_tree(root, *word_head);
+
     while(attempts > 0) {
         read_input(input);
          if(input[0] == '+') {    // if there is a command in input
             if(input[1] == 'i') {   // in the command is +inserisci_inizio
-                add_words_to_tree(root);
-                *root = filter_tree(*root, head);
+                add_words_to_dictionary_in_game(head, &root, word_head);
             } else {    // if the command is +stampa_filtrate
-                print_filtered(*root);
+                print_filtered(root);
             }
         } else {
              if(!fastcmp(input, word_to_find)) {
@@ -525,7 +668,7 @@ void main_game(rb_node_t** root) {
                  }
 
                  return;
-             } else if(rb_search(*root, input) != NULL) {
+             } else if(word_search(*word_head, input) != NULL) {
                  char result[k+1];
                  char word_to_find_copy[k+1];
                  char input_copy[k+1];
@@ -535,9 +678,10 @@ void main_game(rb_node_t** root) {
                  puts(result);
 
                  head = update_constraints(head, input, result);
-                 *root = filter_tree(*root, head);
 
-                 fprintf(stdout, "%d\n", count_filtered(*root));
+                 root = filter_tree(root, head);
+
+                 fprintf(stdout, "%i\n", count_filtered(root));
 
                  --attempts;
              } else {
@@ -554,27 +698,28 @@ void main_game(rb_node_t** root) {
         destroy_simple_list(curr->not_appears_in);
         free(curr);
     }
+
+    rb_destroy(root);
 }
 
 // main function
 int main() {
-    rb_node_t* root = NULL;
+    word_node_t* word_head = NULL;
     char command[MAX_WORD_LENGTH];
 
-    game_init(&root);
+    game_init(&word_head);
 
-    main_game(&root);
+    main_game(&word_head);
     while(fgets(command, MAX_WORD_LENGTH, stdin) != NULL) {
         if(command[0] == '+') { // if there is a command in input
             if(command[1] == 'n') { // if the command is +nuova_partita
-                root = set_all_filtered(root);
-                main_game(&root);
+                main_game(&word_head);
             } else if(command[1] == 'i') {  // if the command is +inserisci_inizio
-                add_words_to_tree(&root);
+                add_words_to_dictionary_not_in_game(&word_head);
             }
         }
     }
 
-    // rb_destroy(root);
+    word_list_destroy(word_head);
     return 0;
 }
