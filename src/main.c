@@ -42,7 +42,6 @@ typedef struct char_Node {
 // global variables
 unsigned short k;
 
-
 // functions declarations
 char* fastcpy(char* dest, const char* string_to_copy);
 short fastcmp(const char* s1, const char* s2);
@@ -58,7 +57,6 @@ rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z);
 rb_node_t* rb_search(rb_node_t* root, char* word);
 void rb_destroy(rb_node_t* root);
 void read_input(char* input);
-unsigned count_filtered(rb_node_t* root);
 char_node_t* list_search(char_node_t* head, char c);
 char_node_t* list_insert(char_node_t* head, char c);
 s_node_t* simple_list_insert(s_node_t* head, unsigned short position);
@@ -67,8 +65,8 @@ void destroy_simple_list(s_node_t* head);
 char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result);
 bool filter(char_node_t* head, const char* word);
 void word_list_destroy(word_node_t* head);
-void add_words_to_not_remove(rb_node_t* root, char_node_t* head, rb_node_t** new_root);
-rb_node_t* update_tree(rb_node_t* root, char_node_t* head);
+void copy_filter_count_tree(rb_node_t* root, char_node_t* head, rb_node_t** new_root, unsigned* filtered_counter);
+rb_node_t* update_tree(rb_node_t* root, char_node_t* head, unsigned* filtered_counter);
 void print_filtered(rb_node_t* root);
 void game_init(word_node_t** head);
 void main_game(word_node_t** word_head);
@@ -405,13 +403,6 @@ char* give_result(char* word_to_find, char* word_input, char* result) {
     return result;
 }
 
-unsigned count_filtered(rb_node_t* root) {
-    if(root == NULL) {
-        return 0;
-    }
-    return count_filtered(root->left) + count_filtered(root->right) + 1;
-}
-
 char_node_t* list_search(char_node_t* head, char c) {
     char_node_t* x = head;
     while(x != NULL && x->c != c) {
@@ -560,21 +551,22 @@ void word_list_destroy(word_node_t* head) {
     }
 }
 
-void copy_and_filter_tree(rb_node_t* root, char_node_t* head, rb_node_t** new_root) {
+void copy_filter_count_tree(rb_node_t* root, char_node_t* head, rb_node_t** new_root, unsigned* filtered_counter) {
     if(root != NULL) {
-        copy_and_filter_tree(root->left, head, new_root);
+        copy_filter_count_tree(root->left, head, new_root, filtered_counter);
         if(filter(head, root->word) == true) {
             rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
             fastcpy(z->word, root->word);
             *new_root = rb_insert(*new_root, z);
+            (*filtered_counter)++;
         }
-        copy_and_filter_tree(root->right, head, new_root);
+        copy_filter_count_tree(root->right, head, new_root, filtered_counter);
     }
 }
 
-rb_node_t* update_tree(rb_node_t* root, char_node_t* head) {
+rb_node_t* update_tree(rb_node_t* root, char_node_t* head, unsigned* filtered_counter) {
     rb_node_t* new_root = NULL;
-    copy_and_filter_tree(root, head, &new_root);
+    copy_filter_count_tree(root, head, &new_root, filtered_counter);
     rb_destroy(root);
     return new_root;
 }
@@ -667,9 +659,10 @@ void main_game(word_node_t** word_head) {
 
                  head = update_constraints(head, input, result);
 
-                 root = update_tree(root, head);
+                 unsigned filtered_counter = 0;
+                 root = update_tree(root, head, &filtered_counter);
 
-                 fprintf(stdout, "%i\n", count_filtered(root));
+                 fprintf(stdout, "%i\n", filtered_counter);
 
                  --attempts;
              } else {
