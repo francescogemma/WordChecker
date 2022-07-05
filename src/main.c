@@ -66,7 +66,8 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, const char*
 bool filter(char_node_t* head, const char* word);
 void copy_filter_count_tree(rb_node_t* filtered_root, char_node_t* head, rb_node_t** new_filtered_root, unsigned* filtered_counter);
 rb_node_t* update_tree(rb_node_t* old_filtered_root, char_node_t* head, unsigned* filtered_counter);
-void initialize_tree(rb_node_t** filtered_root, rb_node_t* word_root);
+rb_node_t* update_tree_first_time(rb_node_t* word_root, char_node_t* head, unsigned* filtered_counter);
+// void initialize_tree(rb_node_t** filtered_root, rb_node_t* word_root);
 void print_filtered(rb_node_t* root);
 void game_init(rb_node_t** word_root);
 void main_game(rb_node_t** word_root);
@@ -570,6 +571,12 @@ rb_node_t* update_tree(rb_node_t* old_filtered_root, char_node_t* head, unsigned
     return new_filtered_root;
 }
 
+rb_node_t* update_tree_first_time(rb_node_t* word_root, char_node_t* head, unsigned* filtered_counter) {
+    rb_node_t* filtered_root = NULL;
+    copy_filter_count_tree(word_root, head, &filtered_root, filtered_counter);
+    return filtered_root;
+}
+
 void print_filtered(rb_node_t* root) {
     if(root != NULL) {
         print_filtered(root->left);
@@ -578,13 +585,13 @@ void print_filtered(rb_node_t* root) {
     }
 }
 
-void initialize_tree(rb_node_t** filtered_root, rb_node_t* word_root) {
+/* void initialize_tree(rb_node_t** filtered_root, rb_node_t* word_root) {
     if(word_root != NULL) {
         initialize_tree(filtered_root, word_root->left);
         *filtered_root = rb_insert(*filtered_root, word_root->word);
         initialize_tree(filtered_root, word_root->right);
     }
-}
+} */
 
 /* word_node_t* word_search(word_node_t* head, const char* word) {
     word_node_t* x = head;
@@ -609,6 +616,7 @@ void game_init(rb_node_t** word_root) {
 }
 
 void main_game(rb_node_t** word_root) {
+    bool first_time = true;
     unsigned attempts;
     rb_node_t* filtered_root = NULL;
     char_node_t* char_list_head = NULL;
@@ -620,15 +628,18 @@ void main_game(rb_node_t** word_root) {
     char input[MAX_WORD_LENGTH];
     read_input(input);
     attempts = (unsigned)atoi(input);
-    initialize_tree(&filtered_root, *word_root);
+
+    // initialize_tree(&filtered_root, *word_root);
 
     while(attempts > 0) {
         read_input(input);
          if(input[0] == '+') {    // if there is a command in input
             if(input[1] == 'i') {   // in the command is +inserisci_inizio
-                add_words_to_dictionary_in_game(char_list_head, &filtered_root, word_root);
+                if(!first_time) add_words_to_dictionary_in_game(char_list_head, &filtered_root, word_root);
+                else add_words_to_dictionary_not_in_game(word_root);
             } else {    // if the command is +stampa_filtrate
-                print_filtered(filtered_root);
+                if(!first_time) print_filtered(filtered_root);
+                else print_filtered(*word_root);
             }
         } else {
              if(!fastcmp(input, word_to_find)) {
@@ -655,7 +666,12 @@ void main_game(rb_node_t** word_root) {
                  char_list_head = update_constraints(char_list_head, input, result);
 
                  unsigned filtered_counter = 0;
-                 filtered_root = update_tree(filtered_root, char_list_head, &filtered_counter);
+                 if(!first_time) {
+                     filtered_root = update_tree(filtered_root, char_list_head, &filtered_counter);
+                 } else {
+                     filtered_root = update_tree_first_time(*word_root, char_list_head, &filtered_counter);
+                     first_time = false;
+                 }
 
                  fprintf(stdout, "%i\n", filtered_counter);
 
