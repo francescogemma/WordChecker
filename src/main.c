@@ -7,11 +7,10 @@
 #define MAX_WORD_LENGTH 100
 
 
-// struct for linked list of words in the dictionary
-typedef struct word_Node {
+/* typedef struct word_Node {
     struct word_Node *next;
     char word[];
-} word_node_t;
+} word_node_t; */
 
 // struct for the red-black tree node for filtered words
 typedef struct rb_Node {
@@ -23,18 +22,18 @@ typedef struct rb_Node {
 } rb_node_t;
 
 // struct for the lists of positions where a character must appear or cannot appear
-typedef struct simple_Node {
+typedef struct position_Node {
     unsigned short pos;
-    struct simple_Node* next;
-} s_node_t;
+    struct position_Node* next;
+} pos_node_t;
 
 // struct for list of character constraints
 typedef struct char_Node {
     char c;
     short appears_exactly;
     short appears_at_least;
-    s_node_t* appears_in;
-    s_node_t* not_appears_in;
+    pos_node_t* appears_in;
+    pos_node_t* not_appears_in;
     struct char_Node* next;
 } char_node_t;
 
@@ -45,33 +44,34 @@ unsigned short k;
 // functions declarations
 char* fastcpy(char* dest, const char* string_to_copy);
 short fastcmp(const char* s1, const char* s2);
-word_node_t* word_list_insert(word_node_t* head, char* word);
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x);
 rb_node_t* right_rotate(rb_node_t* root, rb_node_t* x);
-//rb_node_t* tree_minimum(rb_node_t* root, rb_node_t* x);
-//rb_node_t* tree_successor(rb_node_t* root, rb_node_t* x);
 rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z);
-rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z);
-//rb_node_t* rb_delete_fixup(rb_node_t* root, rb_node_t* x);
-//rb_node_t* rb_delete(rb_node_t* root, rb_node_t* z);
+rb_node_t* rb_insert(rb_node_t* root, char* word);
+/* word_node_t* word_list_insert(word_node_t* head, char* word);
+void word_list_destroy(word_node_t* head); */
+/* rb_node_t* tree_minimum(rb_node_t* root, rb_node_t* x);
+rb_node_t* tree_successor(rb_node_t* root, rb_node_t* x);
+rb_node_t* rb_delete_fixup(rb_node_t* root, rb_node_t* x);
+rb_node_t* rb_delete(rb_node_t* root, rb_node_t* z); */
 rb_node_t* rb_search(rb_node_t* root, char* word);
 void rb_destroy(rb_node_t* root);
 void read_input(char* input);
-char_node_t* list_search(char_node_t* head, char c);
-char_node_t* list_insert(char_node_t* head, char c);
-s_node_t* simple_list_insert(s_node_t* head, unsigned short position);
-s_node_t* simple_list_search(s_node_t* head, unsigned short position);
-void destroy_simple_list(s_node_t* head);
+char_node_t* char_list_search(char_node_t* head, char c);
+char_node_t* char_list_insert(char_node_t* head, char c);
+pos_node_t* pos_list_insert(pos_node_t* head, unsigned short position);
+pos_node_t* pos_list_search(pos_node_t* head, unsigned short position);
+void destroy_pos_list(pos_node_t* head);
 char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result);
 bool filter(char_node_t* head, const char* word);
-void word_list_destroy(word_node_t* head);
-void copy_filter_count_tree(rb_node_t* root, char_node_t* head, rb_node_t** new_root, unsigned* filtered_counter);
-rb_node_t* update_tree(rb_node_t* root, char_node_t* head, unsigned* filtered_counter);
+void copy_filter_count_tree(rb_node_t* filtered_root, char_node_t* head, rb_node_t** new_filtered_root, unsigned* filtered_counter);
+rb_node_t* update_tree(rb_node_t* old_filtered_root, char_node_t* head, unsigned* filtered_counter);
+void initialize_tree(rb_node_t** filtered_root, rb_node_t* word_root);
 void print_filtered(rb_node_t* root);
-void game_init(word_node_t** head);
-void main_game(word_node_t** word_head);
-void add_words_to_dictionary_in_game(char_node_t* head, rb_node_t** root, word_node_t** word_list);
-void add_words_to_dictionary_not_in_game(word_node_t** word_list);
+void game_init(rb_node_t** word_root);
+void main_game(rb_node_t** word_root);
+void add_words_to_dictionary_in_game(char_node_t* head, rb_node_t** root, rb_node_t** word_root);
+void add_words_to_dictionary_not_in_game(rb_node_t** word_root);
 char* give_result(char* word_to_find, char* word_input, char* result);
 
 
@@ -102,12 +102,12 @@ short fastcmp(const char* s1, const char* s2) {
     }
 }
 
-word_node_t* word_list_insert(word_node_t* head, char* word) {
+/* word_node_t* word_list_insert(word_node_t* head, char* word) {
     word_node_t* z = malloc(sizeof(word_node_t) + k + 1);
     fastcpy(z->word, word);
     z->next = head;
     return z;
-}
+} */
 
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x) {
     rb_node_t* y = x->right;
@@ -189,7 +189,10 @@ rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z) {
     return root;
 }
 
-rb_node_t* rb_insert(rb_node_t* root, rb_node_t* z) {
+rb_node_t* rb_insert(rb_node_t* root, char* word) {
+    rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
+    fastcpy(z->word, word);
+
     rb_node_t* y = NULL;
     rb_node_t* x = root;
     while(x != NULL) {
@@ -350,25 +353,23 @@ void read_input(char* input) {
     input[i] = '\0';
 }
 
-void add_words_to_dictionary_in_game(char_node_t* head, rb_node_t** root, word_node_t** word_list) {
+void add_words_to_dictionary_in_game(char_node_t* head, rb_node_t** root, rb_node_t** word_root) {
     char word[MAX_WORD_LENGTH];
     read_input(word);
     while(word[0] != '+') { // finchè non c'è un +inserisci_fine
-        *word_list = word_list_insert(*word_list, word);
+        *word_root = rb_insert(*word_root, word);
         if(filter(head, word) == true) {
-            rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-            fastcpy(z->word, word);
-            *root = rb_insert(*root, z);
+            *root = rb_insert(*root, word);
         }
         read_input(word);
     }
 }
 
-void add_words_to_dictionary_not_in_game(word_node_t** word_list) {
+void add_words_to_dictionary_not_in_game(rb_node_t** word_root) {
     char word[MAX_WORD_LENGTH];
     read_input(word);
     while(word[0] != '+') { // finchè non c'è un +inserisci_fine
-        *word_list = word_list_insert(*word_list, word);
+        *word_root = rb_insert(*word_root, word);
         read_input(word);
     }
 }
@@ -403,7 +404,7 @@ char* give_result(char* word_to_find, char* word_input, char* result) {
     return result;
 }
 
-char_node_t* list_search(char_node_t* head, char c) {
+char_node_t* char_list_search(char_node_t* head, char c) {
     char_node_t* x = head;
     while(x != NULL && x->c != c) {
         x = x->next;
@@ -411,7 +412,7 @@ char_node_t* list_search(char_node_t* head, char c) {
     return x;
 }
 
-char_node_t* list_insert(char_node_t* head, char c) {
+char_node_t* char_list_insert(char_node_t* head, char c) {
     char_node_t* x = malloc(sizeof(char_node_t));
     x->c = c;
     x->appears_at_least = -1;
@@ -422,25 +423,25 @@ char_node_t* list_insert(char_node_t* head, char c) {
     return x;
 }
 
-s_node_t* simple_list_insert(s_node_t* head, unsigned short position) {
-    s_node_t* x = malloc(sizeof(s_node_t));
+pos_node_t* pos_list_insert(pos_node_t* head, unsigned short position) {
+    pos_node_t* x = malloc(sizeof(pos_node_t));
     x->pos = position;
     x->next = head;
     return x;
 }
 
-s_node_t* simple_list_search(s_node_t* head, unsigned short position) {
-    s_node_t* x = head;
+pos_node_t* pos_list_search(pos_node_t* head, unsigned short position) {
+    pos_node_t* x = head;
     while(x != NULL && x->pos != position) {
         x = x->next;
     }
     return x;
 }
 
-void destroy_simple_list(s_node_t* head) {
-    s_node_t* x = head;
+void destroy_pos_list(pos_node_t* head) {
+    pos_node_t* x = head;
     while(x != NULL) {
-        s_node_t* y = x;
+        pos_node_t* y = x;
         x = x->next;
         free(y);
     }
@@ -449,26 +450,26 @@ void destroy_simple_list(s_node_t* head) {
 char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result) {
     for(int i = 0; i < k; i++) {
         if(result[i] == '+') {
-            char_node_t* x = list_search(head, word_input[i]);
+            char_node_t* x = char_list_search(head, word_input[i]);
             if(x == NULL) {
-                head = list_insert(head, word_input[i]);
+                head = char_list_insert(head, word_input[i]);
                 x = head;
             }
-            if(simple_list_search(x->appears_in, i) == NULL) {
-                x->appears_in = simple_list_insert(x->appears_in, i);
+            if(pos_list_search(x->appears_in, i) == NULL) {
+                x->appears_in = pos_list_insert(x->appears_in, i);
             }
         }
     }
 
     for(int i = 0; i < k; i++) {
         if(result[i] == '/') {
-            char_node_t* x = list_search(head, word_input[i]);
+            char_node_t* x = char_list_search(head, word_input[i]);
             if(x == NULL) {
-                head = list_insert(head, word_input[i]);
+                head = char_list_insert(head, word_input[i]);
                 x = head;
             }
-            if(simple_list_search(x->not_appears_in, i) == NULL) {
-                x->not_appears_in = simple_list_insert(x->not_appears_in, i);
+            if(pos_list_search(x->not_appears_in, i) == NULL) {
+                x->not_appears_in = pos_list_insert(x->not_appears_in, i);
             }
             short counter = 0;
             for(int j = 0; j < k; j++) {
@@ -482,13 +483,13 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, const char*
 
     for(int i = 0; i < k; i++) {
         if(result[i] == '|') {
-            char_node_t* x = list_search(head, word_input[i]);
+            char_node_t* x = char_list_search(head, word_input[i]);
             if(x == NULL) {
-                head = list_insert(head, word_input[i]);
+                head = char_list_insert(head, word_input[i]);
                 x = head;
             }
-            if(simple_list_search(x->not_appears_in, i) == NULL) {
-                x->not_appears_in = simple_list_insert(x->not_appears_in, i);
+            if(pos_list_search(x->not_appears_in, i) == NULL) {
+                x->not_appears_in = pos_list_insert(x->not_appears_in, i);
             }
             short counter = 0;
             for(int j = 0; j < k; j++) {
@@ -510,7 +511,7 @@ bool filter(char_node_t* head, const char* word) {
     char_node_t* x = head;
     while(x != NULL) {
         counter = 0;
-        s_node_t* curr = x->appears_in;
+        pos_node_t* curr = x->appears_in;
         //appears_plus_length = simple_list_length(curr);
         while(curr != NULL) {
             if(word[curr->pos] != x->c) {
@@ -542,33 +543,31 @@ bool filter(char_node_t* head, const char* word) {
     return true;
 }
 
-void word_list_destroy(word_node_t* head) {
+/* void word_list_destroy(word_node_t* head) {
     word_node_t* x = head;
     while(x != NULL) {
         word_node_t* y = x;
         x = x->next;
         free(y);
     }
-}
+} */
 
-void copy_filter_count_tree(rb_node_t* root, char_node_t* head, rb_node_t** new_root, unsigned* filtered_counter) {
-    if(root != NULL) {
-        copy_filter_count_tree(root->left, head, new_root, filtered_counter);
-        if(filter(head, root->word) == true) {
-            rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-            fastcpy(z->word, root->word);
-            *new_root = rb_insert(*new_root, z);
+void copy_filter_count_tree(rb_node_t* filtered_root, char_node_t* head, rb_node_t** new_filtered_root, unsigned* filtered_counter) {
+    if(filtered_root != NULL) {
+        copy_filter_count_tree(filtered_root->left, head, new_filtered_root, filtered_counter);
+        if(filter(head, filtered_root->word) == true) {
+            *new_filtered_root = rb_insert(*new_filtered_root, filtered_root->word);
             (*filtered_counter)++;
         }
-        copy_filter_count_tree(root->right, head, new_root, filtered_counter);
+        copy_filter_count_tree(filtered_root->right, head, new_filtered_root, filtered_counter);
     }
 }
 
-rb_node_t* update_tree(rb_node_t* root, char_node_t* head, unsigned* filtered_counter) {
-    rb_node_t* new_root = NULL;
-    copy_filter_count_tree(root, head, &new_root, filtered_counter);
-    rb_destroy(root);
-    return new_root;
+rb_node_t* update_tree(rb_node_t* old_filtered_root, char_node_t* head, unsigned* filtered_counter) {
+    rb_node_t* new_filtered_root = NULL;
+    copy_filter_count_tree(old_filtered_root, head, &new_filtered_root, filtered_counter);
+    rb_destroy(old_filtered_root);
+    return new_filtered_root;
 }
 
 void print_filtered(rb_node_t* root) {
@@ -579,18 +578,15 @@ void print_filtered(rb_node_t* root) {
     }
 }
 
-rb_node_t* initialize_tree(rb_node_t* root, word_node_t* word_list) {
-    word_node_t* x = word_list;
-    while(x != NULL) {
-        rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-        fastcpy(z->word, x->word);
-        root = rb_insert(root, z);
-        x = x->next;
+void initialize_tree(rb_node_t** filtered_root, rb_node_t* word_root) {
+    if(word_root != NULL) {
+        initialize_tree(filtered_root, word_root->left);
+        *filtered_root = rb_insert(*filtered_root, word_root->word);
+        initialize_tree(filtered_root, word_root->right);
     }
-    return root;
 }
 
-word_node_t* word_search(word_node_t* head, const char* word) {
+/* word_node_t* word_search(word_node_t* head, const char* word) {
     word_node_t* x = head;
     while(x != NULL) {
         if(fastcmp(x->word, word) == 0) {
@@ -599,23 +595,23 @@ word_node_t* word_search(word_node_t* head, const char* word) {
         x = x->next;
     }
     return NULL;
-}
+} */
 
-void game_init(word_node_t** head) {
+void game_init(rb_node_t** word_root) {
     char input[MAX_WORD_LENGTH];
     read_input(input);
     k = (unsigned short)atoi(input);
     read_input(input);
     while(input[0] != '+') {
-        *head = word_list_insert(*head, input);
+        *word_root = rb_insert(*word_root, input);
         read_input(input);
     }
 }
 
-void main_game(word_node_t** word_head) {
+void main_game(rb_node_t** word_root) {
     unsigned attempts;
-    rb_node_t* root = NULL;
-    char_node_t* head = NULL;
+    rb_node_t* filtered_root = NULL;
+    char_node_t* char_list_head = NULL;
     char_node_t* curr;
 
     char word_to_find[k+1];
@@ -624,31 +620,30 @@ void main_game(word_node_t** word_head) {
     char input[MAX_WORD_LENGTH];
     read_input(input);
     attempts = (unsigned)atoi(input);
-
-    root = initialize_tree(root, *word_head);
+    initialize_tree(&filtered_root, *word_root);
 
     while(attempts > 0) {
         read_input(input);
          if(input[0] == '+') {    // if there is a command in input
             if(input[1] == 'i') {   // in the command is +inserisci_inizio
-                add_words_to_dictionary_in_game(head, &root, word_head);
+                add_words_to_dictionary_in_game(char_list_head, &filtered_root, word_root);
             } else {    // if the command is +stampa_filtrate
-                print_filtered(root);
+                print_filtered(filtered_root);
             }
         } else {
              if(!fastcmp(input, word_to_find)) {
                  puts("ok");
 
-                 while(head != NULL) {
-                     curr = head;
-                     head = head->next;
-                     destroy_simple_list(curr->appears_in);
-                     destroy_simple_list(curr->not_appears_in);
+                 while(char_list_head != NULL) {
+                     curr = char_list_head;
+                     char_list_head = char_list_head->next;
+                     destroy_pos_list(curr->appears_in);
+                     destroy_pos_list(curr->not_appears_in);
                      free(curr);
                  }
-
+                 rb_destroy(filtered_root);
                  return;
-             } else if(word_search(*word_head, input) != NULL) {
+             } else if(rb_search(*word_root, input) != NULL) {
                  char result[k+1];
                  char word_to_find_copy[k+1];
                  char input_copy[k+1];
@@ -657,10 +652,10 @@ void main_game(word_node_t** word_head) {
                  fastcpy(result, give_result(word_to_find_copy, input_copy, result));
                  puts(result);
 
-                 head = update_constraints(head, input, result);
+                 char_list_head = update_constraints(char_list_head, input, result);
 
                  unsigned filtered_counter = 0;
-                 root = update_tree(root, head, &filtered_counter);
+                 filtered_root = update_tree(filtered_root, char_list_head, &filtered_counter);
 
                  fprintf(stdout, "%i\n", filtered_counter);
 
@@ -672,35 +667,34 @@ void main_game(word_node_t** word_head) {
     }
     puts("ko");
 
-    while(head != NULL) {
-        curr = head;
-        head = head->next;
-        destroy_simple_list(curr->appears_in);
-        destroy_simple_list(curr->not_appears_in);
+    while(char_list_head != NULL) {
+        curr = char_list_head;
+        char_list_head = char_list_head->next;
+        destroy_pos_list(curr->appears_in);
+        destroy_pos_list(curr->not_appears_in);
         free(curr);
     }
-
-    rb_destroy(root);
+    rb_destroy(filtered_root);
 }
 
 // main function
 int main() {
-    word_node_t* word_head = NULL;
+    rb_node_t* word_root = NULL;
     char command[MAX_WORD_LENGTH];
 
-    game_init(&word_head);
+    game_init(&word_root);
 
-    main_game(&word_head);
+    main_game(&word_root);
     while(fgets(command, MAX_WORD_LENGTH, stdin) != NULL) {
         if(command[0] == '+') { // if there is a command in input
             if(command[1] == 'n') { // if the command is +nuova_partita
-                main_game(&word_head);
+                main_game(&word_root);
             } else if(command[1] == 'i') {  // if the command is +inserisci_inizio
-                add_words_to_dictionary_not_in_game(&word_head);
+                add_words_to_dictionary_not_in_game(&word_root);
             }
         }
     }
 
-    word_list_destroy(word_head);
+    rb_destroy(word_root);
     return 0;
 }
