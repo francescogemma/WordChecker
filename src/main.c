@@ -5,15 +5,15 @@
 
 
 // maximum number of characters in a word
-#define MAX_WORD_LENGTH 250
+#define MAX_WORD_LENGTH 100
 
 
-// struct for the red-black tree node for filtered words
+// struct red-black trees
 typedef struct rb_Node {
     bool is_red;
     struct rb_Node* left;
     struct rb_Node* right;
-    struct rb_Node* p;
+    struct rb_Node* parent;
     char word[];
 } rb_node_t;
 
@@ -44,8 +44,8 @@ short fastcmp(const char* s1, const char* s2);
 rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x);
 rb_node_t* right_rotate(rb_node_t* root, rb_node_t* x);
 rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z);
-rb_node_t* rb_insert(rb_node_t* root, char* word);
-rb_node_t* rb_search(rb_node_t* root, char* word);
+rb_node_t* rb_insert(rb_node_t* root, char* word_to_be_inserted);
+rb_node_t* rb_search(rb_node_t* root, char* word_to_be_searched);
 void rb_destroy(rb_node_t* root);
 void read_input(char* input);
 char_node_t* char_list_search(char_node_t* head, char c);
@@ -97,18 +97,18 @@ rb_node_t* left_rotate(rb_node_t* root, rb_node_t* x) {
     rb_node_t* y = x->right;
     x->right = y->left;
     if(y->left != NULL) {
-        y->left->p = x;
+        y->left->parent = x;
     }
-    y->p = x->p;
-    if(x->p == NULL) {
+    y->parent = x->parent;
+    if(x->parent == NULL) {
         root = y;
-    } else if(x == x->p->left) {
-        x->p->left = y;
+    } else if(x == x->parent->left) {
+        x->parent->left = y;
     } else {
-        x->p->right = y;
+        x->parent->right = y;
     }
     y->left = x;
-    x->p = y;
+    x->parent = y;
 
     return root;
 }
@@ -117,55 +117,55 @@ rb_node_t* right_rotate(rb_node_t* root, rb_node_t* x) {
     rb_node_t* y = x->left;
     x->left = y->right;
     if(y->right != NULL) {
-        y->right->p = x;
+        y->right->parent = x;
     }
-    y->p = x->p;
-    if(x->p == NULL) {
+    y->parent = x->parent;
+    if(x->parent == NULL) {
         root = y;
-    } else if(x == x->p->right) {
-        x->p->right = y;
+    } else if(x == x->parent->right) {
+        x->parent->right = y;
     } else {
-        x->p->left = y;
+        x->parent->left = y;
     }
     y->right = x;
-    x->p = y;
+    x->parent = y;
 
     return root;
 }
 
 rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z) {
-    while(z->p != NULL && z->p->is_red == true) {
-        if(z->p == z->p->p->left) {
-            rb_node_t* y = z->p->p->right;
+    while(z->parent != NULL && z->parent->is_red == true) {
+        if(z->parent == z->parent->parent->left) {
+            rb_node_t* y = z->parent->parent->right;
             if(y != NULL && y->is_red == true) {
-                z->p->is_red = false;
+                z->parent->is_red = false;
                 y->is_red = false;
-                z->p->p->is_red = true;
-                z = z->p->p;
+                z->parent->parent->is_red = true;
+                z = z->parent->parent;
             } else {
-                if(z == z->p->right) {
-                    z = z->p;
+                if(z == z->parent->right) {
+                    z = z->parent;
                     root = left_rotate(root, z);
                 }
-                z->p->is_red = false;
-                z->p->p->is_red = true;
-                root = right_rotate(root, z->p->p);
+                z->parent->is_red = false;
+                z->parent->parent->is_red = true;
+                root = right_rotate(root, z->parent->parent);
             }
         } else {
-            rb_node_t* y = z->p->p->left;
+            rb_node_t* y = z->parent->parent->left;
             if(y != NULL && y->is_red == true) {
-                z->p->is_red = false;
+                z->parent->is_red = false;
                 y->is_red = false;
-                z->p->p->is_red = true;
-                z = z->p->p;
+                z->parent->parent->is_red = true;
+                z = z->parent->parent;
             } else {
-                if(z == z->p->left) {
-                    z = z->p;
+                if(z == z->parent->left) {
+                    z = z->parent;
                     root = right_rotate(root, z);
                 }
-                z->p->is_red = false;
-                z->p->p->is_red = true;
-                root = left_rotate(root, z->p->p);
+                z->parent->is_red = false;
+                z->parent->parent->is_red = true;
+                root = left_rotate(root, z->parent->parent);
             }
         }
     }
@@ -173,9 +173,9 @@ rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z) {
     return root;
 }
 
-rb_node_t* rb_insert(rb_node_t* root, char* word) {
+rb_node_t* rb_insert(rb_node_t* root, char* word_to_be_inserted) {
     rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
-    fastcpy(z->word, word);
+    fastcpy(z->word, word_to_be_inserted);
 
     rb_node_t* y = NULL;
     rb_node_t* x = root;
@@ -187,7 +187,7 @@ rb_node_t* rb_insert(rb_node_t* root, char* word) {
             x = x->right;
         }
     }
-    z->p = y;
+    z->parent = y;
     if(y == NULL) {
         root = z;
     } else if(fastcmp(z->word, y->word) < 0) {
@@ -204,14 +204,14 @@ rb_node_t* rb_insert(rb_node_t* root, char* word) {
     return root;
 }
 
-rb_node_t* rb_search(rb_node_t* root, char* word) {
-    if(root == NULL || !fastcmp(word, root->word)) {
+rb_node_t* rb_search(rb_node_t* root, char* word_to_be_searched) {
+    if(root == NULL || !fastcmp(word_to_be_searched, root->word)) {
         return root;
     }
-    if(fastcmp(word, root->word) < 0) {
-        return rb_search(root->left, word);
+    if(fastcmp(word_to_be_searched, root->word) < 0) {
+        return rb_search(root->left, word_to_be_searched);
     } else {
-        return rb_search(root->right, word);
+        return rb_search(root->right, word_to_be_searched);
     }
 }
 
