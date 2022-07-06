@@ -327,7 +327,7 @@ void destroy_pos_list(pos_node_t* head) {
 }
 
 char_node_t* update_constraints(char_node_t* head, char* word_input, const char* result) {
-    for(int i = 0; i < k; i++) {
+    for(unsigned short i = 0; i < k; i++) {
         if(result[i] == '+') {
             char_node_t* x = char_list_search(head, word_input[i]);
             if(x == NULL) {
@@ -340,7 +340,7 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, const char*
         }
     }
 
-    for(int i = 0; i < k; i++) {
+    for(unsigned short i = 0; i < k; i++) {
         if(result[i] == '/') {
             char_node_t* x = char_list_search(head, word_input[i]);
             if(x == NULL) {
@@ -351,7 +351,7 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, const char*
                 x->not_appears_in = pos_list_insert(x->not_appears_in, i);
             }
             short counter = 0;
-            for(int j = 0; j < k; j++) {
+            for(unsigned short j = 0; j < k; j++) {
                 if((result[j] == '|' || result[j] == '+') && word_input[j] == word_input[i]) {
                     counter++;
                 }
@@ -360,7 +360,7 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, const char*
         }
     }
 
-    for(int i = 0; i < k; i++) {
+    for(unsigned short i = 0; i < k; i++) {
         if(result[i] == '|') {
             char_node_t* x = char_list_search(head, word_input[i]);
             if(x == NULL) {
@@ -371,7 +371,7 @@ char_node_t* update_constraints(char_node_t* head, char* word_input, const char*
                 x->not_appears_in = pos_list_insert(x->not_appears_in, i);
             }
             short counter = 0;
-            for(int j = 0; j < k; j++) {
+            for(unsigned short j = 0; j < k; j++) {
                 if((result[j] == '|' || result[j] == '+') && word_input[j] == word_input[i]) {
                     counter++;
                 }
@@ -404,13 +404,13 @@ bool filter(char_node_t* head, const char* word) {
             curr = curr->next;
         }
         if(x->appears_exactly != -1) {
-            for(int i = 0; i < k; i++) {
+            for(unsigned short i = 0; i < k; i++) {
                 if(word[i] == x->c) counter++;
             }
             if(counter != x->appears_exactly) return false;
         } else if(x->appears_at_least != -1) {
             counter = 0;
-            for(int i = 0; i < k; i++) {
+            for(unsigned short i = 0; i < k; i++) {
                 if(word[i] == x->c) counter++;
             }
             if(counter < x->appears_at_least) return false;
