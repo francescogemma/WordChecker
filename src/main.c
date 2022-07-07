@@ -486,7 +486,7 @@ void main_game(rb_node_t** word_root) {
 
     while(attempts > 0) {
         read_input(input);
-         if(input[0] == '+') {    // if there is a command in input
+        if(input[0] == '+') {    // if there is a command in input
             if(input[1] == 'i') {   // in the command is +inserisci_inizio
                 if(!first_time) add_words_to_dictionary_and_filter(char_list_head, &filtered_root, word_root);
                 else add_words_to_dictionary(word_root);
@@ -495,43 +495,43 @@ void main_game(rb_node_t** word_root) {
                 else print_filtered(*word_root);
             }
         } else {
-             if(!fastcmp(input, word_to_find)) {
-                 puts("ok");
+            if(!fastcmp(input, word_to_find)) {
+                puts("ok");
 
-                 while(char_list_head != NULL) {
-                     curr = char_list_head;
-                     char_list_head = char_list_head->next;
-                     destroy_pos_list(curr->appears_in);
-                     destroy_pos_list(curr->not_appears_in);
-                     free(curr);
-                 }
-                 rb_destroy(filtered_root);
-                 return;
-             } else if(rb_search(*word_root, input) != NULL) {
-                 char result[k+1];
-                 char word_to_find_copy[k+1];
-                 char input_copy[k+1];
-                 fastcpy(word_to_find_copy, word_to_find);
-                 fastcpy(input_copy, input);
-                 fastcpy(result, give_result(word_to_find_copy, input_copy, result));
-                 puts(result);
+                while(char_list_head != NULL) {
+                    curr = char_list_head;
+                    char_list_head = char_list_head->next;
+                    destroy_pos_list(curr->appears_in);
+                    destroy_pos_list(curr->not_appears_in);
+                    free(curr);
+                }
+                rb_destroy(filtered_root);
+                return;
+            } else if(rb_search(*word_root, input) != NULL) {
+                char result[k+1];
+                char word_to_find_copy[k+1];
+                char input_copy[k+1];
+                fastcpy(word_to_find_copy, word_to_find);
+                fastcpy(input_copy, input);
+                fastcpy(result, give_result(word_to_find_copy, input_copy, result));
+                puts(result);
 
-                 char_list_head = update_constraints(char_list_head, input, result);
+                char_list_head = update_constraints(char_list_head, input, result);
 
-                 unsigned filtered_counter = 0;
-                 if(!first_time) {
-                     filtered_root = update_tree(filtered_root, char_list_head, &filtered_counter);
-                 } else {
-                     filtered_root = update_tree_first_time(*word_root, char_list_head, &filtered_counter);
-                     first_time = false;
-                 }
+                unsigned filtered_counter = 0;
+                if(!first_time) {
+                    filtered_root = update_tree(filtered_root, char_list_head, &filtered_counter);
+                } else {
+                    filtered_root = update_tree_first_time(*word_root, char_list_head, &filtered_counter);
+                    first_time = false;
+                }
 
-                 fprintf(stdout, "%i\n", filtered_counter);
+                fprintf(stdout, "%i\n", filtered_counter);
 
-                 --attempts;
-             } else {
-                 puts("not_exists");
-             }
+                --attempts;
+            } else {
+                puts("not_exists");
+            }
         }
     }
     puts("ko");
