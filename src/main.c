@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 
@@ -10,10 +10,10 @@
 
 // struct red-black trees
 typedef struct rb_Node {
-    bool is_red;
     struct rb_Node* left;
     struct rb_Node* right;
     struct rb_Node* parent;
+    bool is_red;
     char word[];
 } rb_node_t;
 
@@ -174,7 +174,7 @@ rb_node_t* rb_insert_fixup(rb_node_t* root, rb_node_t* z) {
 }
 
 rb_node_t* rb_insert(rb_node_t* root, char* word_to_be_inserted) {
-    rb_node_t* z = malloc(sizeof(rb_node_t) + k + 1);
+    rb_node_t* z = malloc(offsetof(rb_node_t, word) + k + 1);
     fastcpy(z->word, word_to_be_inserted);
 
     rb_node_t* y = NULL;
