@@ -7,7 +7,7 @@ WordChecker is the final project of Algorithms and Data Structures course at Pol
 
 # Specification
 
-The goal of this project is to build a system that, at its heart, checks the correspondence between the letters of 2 words of equallength.
+The goal of this project is to build a system that, at its heart, checks the correspondence between the letters of 2 words of equal length.
 
 Words are intended as sequences of symbols which can be lowercase (az) or uppercase (AZ) alphabetic characters, numerical digits (0-9), or the symbols - (hyphen) and _ ("underscore"). An example of a 20 symbols word can be: djHD1af9fj7g__l-ssOP.
 
