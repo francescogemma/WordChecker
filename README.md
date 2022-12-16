@@ -2,9 +2,10 @@
 WordChecker - A Wordle like Guessing Game written in C.
 
 WordChecker is the final project of the Algorithms and Data Structures course at the Polytechnic University of Milan. <br />
-The goal of this project is to create a program that meets the required specifications and that has a relatively low time and memory complexity.
+The goal of this project is to create a program that meets the required specifications and that has a significantly low time and memory complexity.
 
-- C version used: C11
+- version of C used: C11
+- IDE used: CLion
 
 ---
 
