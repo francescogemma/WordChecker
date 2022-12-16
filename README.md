@@ -11,6 +11,8 @@ The goal of this project is to build a system that, at its heart, checks the cor
 
 Words are intended as sequences of symbols which can be lowercase (az) or uppercase (AZ) alphabetic characters, numerical digits (0-9), or the symbols - (hyphen) and _ ("underscore"). An example of a 20 symbols word can be: djHD1af9fj7g__l-ssOP.
 
+## Input and Commands
+
 The system reads a sequence of information and instructions from standard input, and produces output strings depending on the case. More precisely, the system
 reads: 
 
@@ -29,6 +31,8 @@ The sequences of input strings for each match (following the command `+nuova_par
 - Occasionally, in the sequence of input strings, may appear the command: `+stampa_filtrate`, the effect of this command is explained below;
 - In addition, both during a game and between games, the `+inserisci_inizio` and `+inserisci_fine` commands may appear that enclose between them a sequence of new words to be added to the set of eligible words;
 - added words are also of length k, and it is always assumed that there are no duplicate words (not even with respect to words already in the set of eligible words).
+
+## Comparison System
 
 For each word read (which we denote in the following as p), to be compared with the reference word (which we denote in the following as r), the program writes to standard output a sequence of k characters done in the following manner. <br />
 We denote by p[1], p[2], ... p[k] the characters of the word p, by r[1], r[2], ... r[k] those of the word r, and by res[1], res[2], ... res[k] those of the printed sequence.
@@ -63,6 +67,8 @@ After the game is over:
 - There may be no other words to compare (but there may be the inclusion of new eligible words)
 - If there is the command `+nuova_partita` in input, a new game starts
 
+## `+stampa_filtrate` command
+
 When, during a match, the `+stampa_filtrate` command is read from input, the program should output, in lexicographical order, the set of allowable words that are compatible with the constraints learned so far in the match, written one per line. <br />
 Note that the learned constraints concern, for each symbol:
 
@@ -75,4 +81,3 @@ Note that the learned constraints concern, for each symbol:
 Symbol order (used to establish the lexicographic order of words) is as specified by the ASCII standard.
 
 In addition, after each comparison, the program must output the number of eligible words still compatible with the learned constraints except in the case of a comparison with a `not_exists` outcome.
-
