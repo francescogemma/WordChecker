@@ -63,7 +63,7 @@ After the game is over:
 - There may be no other words to compare (but there may be the inclusion of new eligible words)
 - If there is the command `+nuova_partita` in input, a new game starts
 
-When, during a match, the +stampa_filtrate command is read from input, the program should output, in lexicographical order, the set of allowable words that are compatible with the constraints learned so far in the match, written one per line. <br />
+When, during a match, the `+stampa_filtrate` command is read from input, the program should output, in lexicographical order, the set of allowable words that are compatible with the constraints learned so far in the match, written one per line. <br />
 Note that the learned constraints concern, for each symbol:
 
 1. If the symbol does not belong to r;
