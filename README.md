@@ -48,18 +48,29 @@ For any 1 ≤ i ≤ k, we have that:
 
 Examples of comparisons (where the first line is the reference word r, the second is p, and the third is the output res):
 
-- `djPDi939-s__e-s` <br />
-`gioSON-we2_w234` <br />
-`/|////|/|/+//|/` 
-- `djPDi939-s__e-s` <br />
-`kiidsa92KFaa94-` <br />
-`/|/||/|/////|/|`
-- `djPDi939-s__e-s` <br />
-`ewi-n4wp-sesr-v` <br />
-`|/|/////++/|/+/`
-- `DIk834k249kaoe_` <br />
-`48kDkkkf-saancd` <br />
-`||+||/+////+///`
+```
+djPDi939-s__e-s
+gioSON-we2_w234
+/|////|/|/+//|/
+```
+
+```
+djPDi939-s__e-s
+kiidsa92KFaa94-
+/|/||/|/////|/|
+```
+
+```
+djPDi939-s__e-s
+ewi-n4wp-sesr-v
+|/|/////++/|/+/
+```
+
+```
+DIk834k249kaoe_
+48kDkkkf-saancd
+||+||/+////+///
+```
 
 If a word is read from standard input that does not belong to the set of eligible words, the program writes to standard output the string `not_exists`.
 
